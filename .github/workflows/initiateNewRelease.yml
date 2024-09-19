@@ -1,0 +1,21 @@
+name: Initiate New Release
+run-name: ${{ github.triggering_actor }} is initiating a new release from '${{ github.ref_name }}' branch
+on:
+  workflow_dispatch:
+
+jobs:
+  create-release-branch:
+    uses: ./.github/workflows/createReleaseBranch.yml
+    secrets: inherit
+  generate-release-changelog:
+    uses: ./.github/workflows/generateReleaseChangelog.yml
+    secrets: inherit
+    needs: [create-release-branch]
+    with:
+      branch-name: ${{ needs.create-release-branch.outputs.branch-name }}
+  create-release-pr:
+    uses: ./.github/workflows/createReleasePR.yml
+    secrets: inherit
+    needs: [generate-release-changelog, create-release-branch]
+    with:
+      branch-name: ${{ needs.create-release-branch.outputs.branch-name }}
